@@ -21,7 +21,7 @@ function compare {
     echo -e "[${GREEN}OK${NC}] ${NAME}"
   else
     echo -e "[${RED}FAIL${NC}] ${NAME}"
-    diff -r test-project/$1 $2
+    diff --color=always -r test-project/$1 $2
     ((F=F+1))
   fi
   cd test-project

@@ -113,3 +113,6 @@ div {
 :focus {
   outline: 0;
 }
+canvas {
+  display: block;
+}
