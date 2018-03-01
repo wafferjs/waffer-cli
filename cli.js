@@ -215,7 +215,6 @@ if (argv._[0] === 'export') {
   return;
 }
 
-
 // session
 if (argv.session) {
   const secret = typeof argv.session === 'string' ? argv.session : 'I like waffles';
