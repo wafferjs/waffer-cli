@@ -12,6 +12,7 @@ waffer                   # start application
        --debug           # start in debug mode
 waffer new [<dir>]       # initialize waffer project
 waffer view <name>       # create new view
+waffer component <name>  # create new component
 waffer controller <name> # create new controller
 waffer export            # export all views into simple html site
 waffer help              # display help
