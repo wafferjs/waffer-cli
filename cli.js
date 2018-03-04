@@ -184,11 +184,11 @@ const server = waffer({ prod, debug });
 
 if (argv._[0] === 'export') {
 
-  const parse = async (file, next = function () {}, exporting = false, options = {}) => {
+  const parse = async (file, exporting = false, options = {}) => {
     const ext = '.' + file.split('.').slice(-1)[0];
     const parser = server.parser(ext);
 
-    return { ext, ...await parser.parse(file, exporting, options) }
+    return { ext: parser.ext, ...await parser.parse(file, exporting, options) }
   }
 
   (async _ => {
@@ -215,8 +215,8 @@ if (argv._[0] === 'export') {
       const component = `${await fs.readFile(path.join(c, 'component.js'))}`
 
       await (async _ => {
-        const { content } = await parse(path.join(c, 'template.pug'), true)
-        componentjs[name + '.js'] = component.replace(new RegExp(`#template-${name}`, 'g'), `${content}`)
+        const { content } = await parse(path.join(c, 'template.pug'), true, { fragment: true })
+        componentjs[name + '.js'] = component.replace(new RegExp(`#template-${name}`, 'g'), `${content}`.replace(/\n/g, ''))
       })()
 
       await (async _ => {
@@ -226,15 +226,14 @@ if (argv._[0] === 'export') {
     }
 
     const { code, error } = uglify.minify(componentjs, { toplevel: true })
-    await fs.writeFileSync(path.join(cwd, 'html', 'components.js'), code)
+    await fs.writeFileSync(path.join(cwd, 'html', 'components.js'), code + '\n')
     if (error) {
-      console.error(error)
       console.log('[-] '.red + 'html/components.js');
     } else {
       console.log('[+] '.green + 'html/components.js');
     }
 
-    await fs.writeFileSync(path.join(cwd, 'html', 'components.css'), componentcss.join(''))
+    await fs.writeFileSync(path.join(cwd, 'html', 'components.css'), componentcss.join('') + '\n')
 
 
     // static files
@@ -263,7 +262,7 @@ if (argv._[0] === 'export') {
 
       // index of view
       const index = path.join(dir, 'index.pug');
-      const { content, ext } = await parse(index, true);
+      const { content, ext } = await parse(index, true, { view });
 
       if (content) {
         const file = path.join(cwd, 'html', view + ext);

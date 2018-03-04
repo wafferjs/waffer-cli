@@ -43,6 +43,12 @@ waffer export > /dev/null
 compare html export-1
 test-cleanup
 
+test-init new-component
+waffer component my-component > /dev/null
+waffer export > /dev/null
+compare html export-2
+test-cleanup
+
 if [[ F -gt 0 ]]; then
   echo -e "${F} tests ${RED}failed${NC}."
   exit 1

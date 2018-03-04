@@ -1,0 +1,1 @@
+Vue.component("main",{template:'<div class="main"><div class="text">{{ name }}</div></div>',props:[],data:()=>({name:"main"}),mounted(){const{$el:e}=this}}),Vue.component("my-component",{template:'<div class="my-component"><div class="text">{{ name }}</div></div>',props:[],data:()=>({name:"my-component"}),mounted(){const{$el:e}=this}});
