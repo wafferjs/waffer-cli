@@ -1,14 +1,14 @@
 #!/usr/bin/node
 
-const fs        = require('fs-extra');
-const optimist  = require('optimist');
-const prompts   = require('prompts');
-const _         = require('lodash');
-const waffer    = require('waffer');
-const rimraf    = require('rimraf');
-const colors    = require('colors');
-const path      = require('path');
-const glob      = require('glob');
+const uglify    = require('uglify-es')
+const fs        = require('fs-extra')
+const optimist  = require('optimist')
+const prompts   = require('prompts')
+const _         = require('lodash')
+const waffer    = require('waffer')
+const colors    = require('colors')
+const path      = require('path')
+const glob      = require('glob')
 
 const { argv } = optimist;
 
@@ -56,10 +56,10 @@ const copyEjs = (src, dest, data = {}, filter = copyFilter) => {
         const content = fs.readFileSync(file);
         const parsed = _.template(content)(data);
         fs.writeFileSync(dfile, parsed);
-        console.log('[+] '.green + dfile);
+        console.log('[+] '.green + dfile.slice(cwd.length + 1));
       } catch (e) {
         console.error(e)
-        console.log('[-] '.red + dfile);
+        console.log('[-] '.red + dfile.slice(cwd.length + 1));
       }
 
       continue;
@@ -84,10 +84,10 @@ const newController = dir => {
   copy(src, dest);
 }
 
-const newComponent = dir => {
+const newComponent = (dir, wd = '/') => {
   const name = _.kebabCase(dir);
   const src = path.join(__dirname, 'template/components/component');
-  const dest = path.join(cwd, 'components', name);
+  const dest = path.join(cwd, wd, 'components', name);
 
   copyEjs(src, dest, { name });
 }
@@ -100,7 +100,7 @@ const copyTemplate = dir => {
     return !~dest.indexOf('/components/component') && copyFilter(src, dest);
   })
 
-  newComponent('main');
+  newComponent('main', dir);
 }
 
 const getArgs = async (questions = []) => {
@@ -184,104 +184,124 @@ const server = waffer({ prod, debug });
 
 if (argv._[0] === 'export') {
 
-  const parse = (file, next = function () {}, exporting = false, options = {}) => {
+  const parse = async (file, next = function () {}, exporting = false, options = {}) => {
     const ext = '.' + file.split('.').slice(-1)[0];
     const parser = server.parser(ext);
 
-    parser.parse(file, (err, content) => {
-      next(err, content, parser.ext || ext)
-    }, exporting, options)
+    return { ext, ...await parser.parse(file, exporting, options) }
   }
 
-  const views = fs.readdirSync(path.join(cwd, 'views'));
-  views.unshift(views.splice(views.indexOf('index'), 1)[0]);
+  (async _ => {
+    const views = fs.readdirSync(path.join(cwd, 'views'));
+    views.unshift(views.splice(views.indexOf('index'), 1)[0]);
 
-  try {
-    rimraf.sync(argv._[1] || 'html');
-  } catch (e) {}
+    try {
+      await fs.remove(argv._[1] || 'html')
+    } catch (e) {}
 
-  fs.mkdirSync(argv._[1] || 'html');
+    await fs.ensureDir(argv._[1] || 'html');
 
-  // static files
-  const static = path.join(cwd, 'static', '**');
-  for (let s of glob.sync(static, { dot: true })) {
-    const p = path.join(cwd, 'html', s.substring(static.length - 3));
+    // vue
+    await fs.writeFile(path.join(cwd, 'html', 'vue.js'), await fs.readFile(path.join(__dirname, 'node_modules/vue/dist/vue.min.js')))
+    console.log('[+] '.green + 'html/vue.js');
 
-    if (fs.statSync(s).isDirectory()) {
-      fs.ensureDirSync(p);
-      console.log('[+] '.green + p);
-      continue;
+    // components
+    const componentjs  = {}
+    const componentcss = []
+    for (let c of glob.sync(path.join(cwd, 'components', '*'))) {
+      // style
+      // component
+      const name = c.substr(cwd.length + 12)
+      const component = `${await fs.readFile(path.join(c, 'component.js'))}`
+
+      await (async _ => {
+        const { content } = await parse(path.join(c, 'template.pug'), true)
+        componentjs[name + '.js'] = component.replace(new RegExp(`#template-${name}`, 'g'), `${content}`)
+      })()
+
+      await (async _ => {
+        const { content } = await parse(path.join(c, 'style.styl'), true, { compress: true })
+        componentcss.push(content)
+      })()
     }
 
-    parse(s, (err, contentOrBuf, ext) => {
-      console.log(err)
-      if (err) {
-        console.error(err);
-      }
-
-      if (contentOrBuf) {
-        let d = p.split('.');
-        d.pop();
-        d.push(ext.substr(1));
-        fs.writeFileSync(d.join('.'), contentOrBuf);
-        console.log('[+] '.green + d.join('.'));
-      }
-    }, true);
-  }
-  for (let view of views) {
-    const dir = path.join(cwd, 'views', view);
-
-    // index of view
-    const index = path.join(dir, 'index.pug');
-    parse(index, (err, contentOrBuf, ext) => {
-      if (err && !~`${err}`.indexOf('no such file')) {
-        console.error(err);
-      }
-
-      console.log(view)
-      if (contentOrBuf) {
-        const file = path.join(cwd, 'html', view + ext);
-        fs.writeFileSync(file, contentOrBuf);
-        console.log('[+] '.green + file);
-      }
-    }, true);
-
-    // make script dir
-    const dest = path.join(cwd, 'html', view);
-    const public = glob.sync(dir + '/**').filter(f => !f.endsWith('.pug'));
-
-    if (public.length > 0) {
-      fs.ensureDirSync(dest);
-      console.log('[+] '.green + dest);
+    const { code, error } = uglify.minify(componentjs, { toplevel: true })
+    await fs.writeFileSync(path.join(cwd, 'html', 'components.js'), code)
+    if (error) {
+      console.error(error)
+      console.log('[-] '.red + 'html/components.js');
+    } else {
+      console.log('[+] '.green + 'html/components.js');
     }
 
-    // public files
-    for (let s of public) {
-      const p = path.join(dest, s.substring(dir.length));
+    await fs.writeFileSync(path.join(cwd, 'html', 'components.css'), componentcss.join(''))
+
+
+    // static files
+    const static = path.join(cwd, 'static', '**');
+    for (let s of glob.sync(static, { dot: true })) {
+      const p = path.join(cwd, 'html', s.substring(static.length - 3));
 
       if (fs.statSync(s).isDirectory()) {
-        fs.ensureDirSync(p);
-        console.log('[+] '.green + p);
+        await fs.ensureDir(p);
         continue;
       }
 
-      parse(s, (err, contentOrBuf, ext) => {
-        if (err) {
-          console.error(err);
+      const { content, ext } = await parse(s, true);
+
+      if (content) {
+        let d = p.split('.');
+        d.pop();
+        d.push(ext.substr(1));
+        await fs.writeFile(d.join('.'), content);
+        console.log('[+] '.green + d.join('.').substr(cwd.length + 1));
+      }
+    }
+
+    for (let view of views) {
+      const dir = path.join(cwd, 'views', view);
+
+      // index of view
+      const index = path.join(dir, 'index.pug');
+      const { content, ext } = await parse(index, true);
+
+      if (content) {
+        const file = path.join(cwd, 'html', view + ext);
+        await fs.writeFile(file, content);
+        console.log('[+] '.green + file.substr(cwd.length + 1));
+      }
+
+      // make script dir
+      const dest = path.join(cwd, 'html', view);
+      const public = glob.sync(dir + '/**').filter(f => !f.endsWith('.pug'));
+
+      if (public.length > 0) {
+        await fs.ensureDir(dest);
+      }
+
+      // public files
+      for (let s of public) {
+        const p = path.join(dest, s.substring(dir.length));
+
+        if (fs.statSync(s).isDirectory()) {
+          await fs.ensureDir(p);
+          continue;
         }
 
-        if (contentOrBuf) {
+        const { content, ext } = await parse(s, true)
+
+        if (content) {
           let d = p.split('.');
           d.pop();
           d.push(ext.substr(1));
-          fs.writeFileSync(d.join('.'), contentOrBuf);
-          console.log('[+] '.green + d.join('.'));
+          await fs.writeFile(d.join('.'), content);
+          console.log('[+] '.green + d.join('.').substr(cwd.length + 1));
         }
-      }, true);
-    }
+      }
 
-    process.once('exit', e => console.log('Project exported into html/'));
-  }
+      process.once('exit', e => console.log('Project exported into html/'));
+    }
+  })()
 
 
   return;
