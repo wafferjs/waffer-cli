@@ -101,7 +101,7 @@ const copyTemplate = dir => {
     return !~dest.indexOf('/assets/components/component') && copyFilter(src, dest);
   })
 
-  newComponent('main', dir);
+  newComponent('view-component', dir);
 }
 
 const getArgs = async (questions = []) => {
@@ -124,7 +124,7 @@ const getArgs = async (questions = []) => {
 }
 
 if (argv._[0] === 'new') {
-  return (async _ => {
+  (async _ => {
     const dir = await getArgs([ 'Name your project' ])
     copyTemplate(dir);
 
@@ -140,12 +140,13 @@ if (argv._[0] === 'new') {
     console.log('cd ' + dir);
     console.log('waffer --port 8080');
   })()
-  return;
+
+  return
 }
 
 if (!fs.existsSync(path.join(cwd, 'views'))) {
   console.error('[!] '.red + 'Not a valid waffer project.');
-  return;
+  return
 }
 
 if (argv._[0] === 'view') {
@@ -153,9 +154,9 @@ if (argv._[0] === 'view') {
     const dir = await getArgs([ 'Name your view' ])
     newView(dir);
     console.log('View ' + dir.green + ' created.');
+    process.exit()
   })()
 
-  return;
 }
 
 if (argv._[0] === 'service') {
@@ -165,7 +166,7 @@ if (argv._[0] === 'service') {
     console.log('Service ' + dir.green + ' created.');
   })()
 
-  return;
+  return
 }
 
 if (argv._[0] === 'component') {
@@ -175,7 +176,7 @@ if (argv._[0] === 'component') {
     console.log('Component ' + dir.green + ' created.');
   })()
 
-  return;
+  return
 }
 
 const prod = !!argv.prod;
