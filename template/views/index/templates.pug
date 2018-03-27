@@ -1,0 +1,17 @@
+template#template-index
+  .main
+    h1 
+      | \
+      span v
+      | /
+
+    h2 waffer
+      span view: #{view}
+
+template#template-404
+  .main
+    pre
+      | // 404 page not found.
+      | if (!page) {
+      |   throw new Error("(╯°□°)╯︵ ┻━┻");
+      | } 

@@ -2,20 +2,19 @@ doctype html
 html
   head
     link(href='/reset.styl', rel='stylesheet')
-    link(href='/components.styl', rel='stylesheet')
+    link(href='/components.css', rel='stylesheet')
     link(href='@styles/main.styl', rel='stylesheet')
 
+    script const view = `#{view}`;
     script(src='/vue.js')
+    script(src='/vue-router.js')
     script(src='/components.js')
+    
+    meta(charset='utf-8')
 
   body
+    include templates.pug
     #app
-      h1 
-        | \
-        span v
-        | /
+      router-view
 
-      h2 waffer
-        span view: #{view}
-
-    script(src='@scripts/app.js')
+    script(type='module' src='@scripts/app.js')
