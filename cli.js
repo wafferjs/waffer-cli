@@ -5,7 +5,7 @@ const fs        = require('fs-extra')
 const optimist  = require('optimist')
 const prompts   = require('prompts')
 const _         = require('lodash')
-const waffer    = require('waffer')
+const waffer    = require('../waffer')
 const colors    = require('colors')
 const path      = require('path')
 const glob      = require('glob')
@@ -24,10 +24,11 @@ if (argv._[0] === 'help') {
   console.log('waffer new [<dir>]       # initialize waffer project');
   console.log('waffer view <name>       # create new view');
   console.log('waffer component <name>  # create new component');
-  console.log('waffer controller <name> # create new controller');
+  console.log('waffer service <name> # create new service');
   console.log('waffer export            # export all views into simple html site');
   console.log('waffer help              # display help');
-  return;
+
+  process.exit()
 }
 
 const copyFilter = (src, dest) => {
@@ -48,7 +49,7 @@ const copyEjs = (src, dest, data = {}, filter = copyFilter) => {
   const files = glob.sync(path.join(src, '*'));
 
   fs.ensureDirSync(dest);
-  
+
   for (let file of files) {
     const dfile = path.join(dest, path.relative(src, file).slice(0, -4))
     if (file.endsWith('.ejs')) {
@@ -74,20 +75,20 @@ const newView = dir => {
   const dest = path.join(cwd, 'views', dir);
 
   copy(src, dest);
-  newController(dir);
+  newService(dir);
 }
 
-const newController = dir => {
-  const src = path.join(__dirname, 'template/controllers/index');
-  const dest = path.join(cwd, 'controllers', dir);
+const newService = dir => {
+  const src = path.join(__dirname, 'template/services/index');
+  const dest = path.join(cwd, 'services', dir);
 
   copy(src, dest);
 }
 
 const newComponent = (dir, wd = '/') => {
   const name = _.kebabCase(dir);
-  const src = path.join(__dirname, 'template/components/component');
-  const dest = path.join(cwd, wd, 'components', name);
+  const src = path.join(__dirname, 'template/assets/components/component');
+  const dest = path.join(cwd, wd, 'assets', 'components', name);
 
   copyEjs(src, dest, { name });
 }
@@ -97,7 +98,7 @@ const copyTemplate = dir => {
   const dest = path.join(cwd, dir);
 
   copy(src, dest, (src, dest) => {
-    return !~dest.indexOf('/components/component') && copyFilter(src, dest);
+    return !~dest.indexOf('/assets/components/component') && copyFilter(src, dest);
   })
 
   newComponent('main', dir);
@@ -157,11 +158,11 @@ if (argv._[0] === 'view') {
   return;
 }
 
-if (argv._[0] === 'controller') {
+if (argv._[0] === 'service') {
   (async () => {
-    const dir = await getArgs([ 'Name your controller' ])
-    newController(dir);
-    console.log('Controller ' + dir.green + ' created.');
+    const dir = await getArgs([ 'Name your service' ])
+    newService(dir);
+    console.log('Service ' + dir.green + ' created.');
   })()
 
   return;
@@ -187,8 +188,26 @@ if (argv._[0] === 'export') {
   const parse = async (file, exporting = false, options = {}) => {
     const ext = '.' + file.split('.').slice(-1)[0];
     const parser = server.parser(ext);
+    const view = file.substr(cwd.length + 1).substr(6).split('/').shift();
 
-    return { ext: parser.ext, ...await parser.parse(file, exporting, options) }
+    const data = await parser.parse(file, exporting, options)
+
+    if (exporting) {
+      data.content = `${data.content}`.replace(/\/?@lib\/(.+)/g, (_, lib) => {
+        return `https://unpkg.com/${lib}`
+      }).replace(/(\/)?@([^\s]+(\/)|\S+$)/g, (_, p, url, s) => {
+        let { ext, dir, name } = path.parse(url)
+        const parser = server.parser(ext);
+
+        if (!parser.ext) {
+          return p + path.join(view, url) + s
+        }
+
+        return p + path.join(view, dir, name + parser.ext) + s
+      })
+    }
+
+    return { ext: parser.ext, ...data }
   }
 
   (async _ => {
@@ -208,7 +227,7 @@ if (argv._[0] === 'export') {
     // components
     const componentjs  = {}
     const componentcss = []
-    for (let c of glob.sync(path.join(cwd, 'components', '*'))) {
+    for (let c of glob.sync(path.join(cwd, 'assets', 'components', '*'))) {
       // style
       // component
       const name = c.substr(cwd.length + 12)
@@ -237,7 +256,7 @@ if (argv._[0] === 'export') {
 
 
     // static files
-    const static = path.join(cwd, 'static', '**');
+    const static = path.join(cwd, 'assets', 'static', '**');
     for (let s of glob.sync(static, { dot: true })) {
       const p = path.join(cwd, 'html', s.substring(static.length - 3));
 
@@ -322,7 +341,7 @@ if (prod) {
   // compression
   server.app.register(require('fastify-compress'));
 } else {
-  server.app.log.warn('Runnin in development mode.')
+  server.log.warn('Runnin in development mode.')
 }
 
 // database
