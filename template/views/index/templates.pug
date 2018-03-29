@@ -1,19 +1,15 @@
 template#template-index
   .main
-    h1 
-      | \
-      span v
-      | /
+    error-handler
+      h1 
+        | \
+        span v
+        | /
 
-    h2 waffer
-      span view: #{view}
-      
-    view-component
+      h2 waffer
+        span view: /#{view}/
 
 template#template-404
   .main
-    pre
-      | // 404 page not found.
-      | if (!page) {
-      |   throw new Error("(╯°□°)╯︵ ┻━┻");
-      | } 
+    error-handler
+      error(:err="{ status: 404, name: 'Route not Found', message: 'The client has not found anything matching the Request-URI.' }")

@@ -1,8 +1,7 @@
-@import 'https://fonts.googleapis.com/css?family=Montserrat:100|Raleway:100'
+@import 'https://fonts.googleapis.com/css?family=Montserrat:100,300|Raleway:100|Noto+Mono:400'
 
 body
   font-family Montserrat, sans
-  user-select none
 
   #app
     size 100vw 100vh
@@ -11,19 +10,30 @@ body
     align-items center
     flex-direction column
 
+  pre
+    font-family 'Noto Mono', monospace
+    line-height 1.4em
+
 h1
-  font-size 57px
+  text-align center
   font-family Raleway
-  padding _ _ 27px
+  font-weight 100
+  font-size 57px
   color #999
+
+  padding _ _ 27px
 
   span
     font-family Montserrat
 
 h2
-  font-size 57px/2
+  text-align center
+  font-weight 100
+  font-size 37px
   color #666
 
   span
+    font-weight 300
+    font-size .5em
     display block
-    font-size .5eem
+    padding 17px _

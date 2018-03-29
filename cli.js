@@ -100,8 +100,6 @@ const copyTemplate = dir => {
   copy(src, dest, (src, dest) => {
     return !~dest.indexOf('/assets/components/component') && copyFilter(src, dest);
   })
-
-  newComponent('view-component', dir);
 }
 
 const getArgs = async (questions = []) => {

@@ -1,12 +1,13 @@
+/* global Vue */
 Vue.component(`<%= name %>`, {
   template: `#template-<%= name %>`,
   props: [ ],
   data () {
-    const name = `<%= name %>`;
+    const name = `<%= name %>`
 
-    return { name };
+    return { name }
   },
   mounted () {
-    const { $el } = this;
-  }
-});
+    const { $el } = this
+  },
+})
