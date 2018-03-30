@@ -1,11 +1,11 @@
 /* eslint no-unused-vars: ["error", { varsIgnorePattern: "app" }] */
-/* global Vue VueRouter view */
+/* global Vue VueRouter data */
 
 import routes from './routes.js'
 
 const router = new VueRouter({
-  mode: 'history',
-  base: `/${view}/`,
+  mode: data.mode,
+  base: `/${data.view}/`,
   routes: routes,
 })
 

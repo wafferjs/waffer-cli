@@ -6,9 +6,12 @@ html
     link(href='@styles/main.styl', rel='stylesheet')
 
       
-    script const view = `#{view}`;
-      if err.status !== 200
-        | const err = !{JSON.stringify(err)};
+    script.
+      const data = {
+        view: `#{view}`,
+        mode: `#{exported === true?'hash':'history'}`,
+        err: !{!err || err.status === 200 ? false : JSON.stringify(err)}
+      };
       
     script(src='/vue.js')
     script(src='/vue-router.js')

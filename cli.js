@@ -24,7 +24,7 @@ if (argv._[0] === 'help') {
   console.log('waffer new [<dir>]       # initialize waffer project');
   console.log('waffer view <name>       # create new view');
   console.log('waffer component <name>  # create new component');
-  console.log('waffer service <name> # create new service');
+  console.log('waffer controller <name> # create new controller');
   console.log('waffer export            # export all views into simple html site');
   console.log('waffer help              # display help');
 
@@ -75,12 +75,12 @@ const newView = dir => {
   const dest = path.join(cwd, 'views', dir);
 
   copy(src, dest);
-  newService(dir);
+  newController(dir);
 }
 
-const newService = dir => {
-  const src = path.join(__dirname, 'template/services/index');
-  const dest = path.join(cwd, 'services', dir);
+const newController = dir => {
+  const src = path.join(__dirname, 'template/controllers/index');
+  const dest = path.join(cwd, 'controllers', dir);
 
   copy(src, dest);
 }
@@ -157,11 +157,11 @@ if (argv._[0] === 'view') {
 
 }
 
-if (argv._[0] === 'service') {
+if (argv._[0] === 'controller') {
   (async () => {
-    const dir = await getArgs([ 'Name your service' ])
-    newService(dir);
-    console.log('Service ' + dir.green + ' created.');
+    const dir = await getArgs([ 'Name your controller' ])
+    newController(dir);
+    console.log('Controller ' + dir.green + ' created.');
   })()
 
   return
@@ -189,7 +189,7 @@ if (argv._[0] === 'export') {
     const parser = server.parser(ext);
     const view = file.substr(cwd.length + 1).substr(6).split('/').shift();
 
-    const data = await parser.parse(file, exporting, options)
+    const data = await parser.parse(file, exporting, { exported: exporting, ...options})
 
     if (exporting) {
       data.content = `${data.content}`.replace(/\/?@lib\/(.+)/g, (_, lib) => {
@@ -223,23 +223,33 @@ if (argv._[0] === 'export') {
     await fs.writeFile(path.join(cwd, 'html', 'vue.js'), await fs.readFile(path.join(__dirname, 'node_modules/vue/dist/vue.min.js')))
     console.log('[+] '.green + 'html/vue.js');
 
+    // vue-router
+    await fs.writeFile(path.join(cwd, 'html', 'vue-router.js'), await fs.readFile(path.join(__dirname, 'node_modules/vue-router/dist/vue-router.min.js')))
+    console.log('[+] '.green + 'html/vue-router.js');
+
     // components
     const componentjs  = {}
     const componentcss = []
     for (let c of glob.sync(path.join(cwd, 'assets', 'components', '*'))) {
-      // style
-      // component
-      const name = c.substr(cwd.length + 12)
-      const component = `${await fs.readFile(path.join(c, 'component.js'))}`
+      const name = c.split('/').slice(-1)[0]
+      let component = `${await fs.readFile(path.join(c, 'component.js'))}`
 
+      // component
       await (async _ => {
-        const { content } = await parse(path.join(c, 'template.pug'), true, { fragment: true })
-        componentjs[name + '.js'] = component.replace(new RegExp(`#template-${name}`, 'g'), `${content}`.replace(/\n/g, ''))
+        try {
+          const { content } = await parse(path.join(c, 'template.pug'), true, { fragment: true })
+           component = component.replace(new RegExp(`#template-${name}`, 'g'), `${content}`.replace(/[`\n]/g, ''))
+        } catch (e) {}
+
+        componentjs[name + '.js'] = component
       })()
 
+      // style
       await (async _ => {
-        const { content } = await parse(path.join(c, 'style.styl'), true, { compress: true })
-        componentcss.push(content)
+        try {
+          const { content } = await parse(path.join(c, 'style.styl'), true, { compress: true })
+          componentcss.push(content)
+        } catch (e) {}
       })()
     }
 
@@ -280,7 +290,7 @@ if (argv._[0] === 'export') {
 
       // index of view
       const index = path.join(dir, 'index.pug');
-      const { content, ext } = await parse(index, true, { view });
+      const { content, ext } = await parse(index, true, { view, err: { status: 200 } });
 
       if (content) {
         const file = path.join(cwd, 'html', view + ext);
@@ -328,24 +338,24 @@ if (argv._[0] === 'export') {
 if (argv.session) {
   const secret = typeof argv.session === 'string' ? argv.session : 'I like waffles';
 
-  server.app.register(require('fastify-cookie'));
-  server.app.register(require('fastify-session'), { secret });
+  // server.app.register(require('fastify-cookie'));
+  // server.app.register(require('fastify-session'), { secret });
 }
 
 // production
 if (prod) {
   // security headers
-  server.app.register(require('fastify-helmet'), { hidePoweredBy: { setTo: `waffer ${waffer.version}` } });
+  // server.app.register(require('fastify-helmet'), { hidePoweredBy: { setTo: `waffer ${waffer.version}` } });
 
   // compression
-  server.app.register(require('fastify-compress'));
+  // server.app.register(require('fastify-compress'));
 } else {
   server.log.warn('Runnin in development mode.')
 }
 
 // database
 if (typeof argv.db === 'string') {
-  server.app.register(require('fastify-mongodb'), { url: argv.db })
+  // server.app.register(require('fastify-mongodb'), { url: argv.db })
 }
 
 server.listen(argv.port);
