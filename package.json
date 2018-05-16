@@ -28,11 +28,11 @@
     "fs-extra": "^5.0.0",
     "glob": "^7.1.2",
     "lodash": "^4.17.5",
+    "npm": "^6.0.1",
     "optimist": "^0.6.1",
     "prompts": "^0.1.8",
     "uglify-es": "^3.3.9",
     "vue": "^2.5.16",
-    "vue-router": "^3.0.1",
-    "waffer": "^1.2.13"
+    "vue-router": "^3.0.1"
   }
 }

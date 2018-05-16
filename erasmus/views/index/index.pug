@@ -1,0 +1,27 @@
+doctype html
+html
+  head
+    link(href='/reset.styl', rel='stylesheet')
+    link(href='/components.css', rel='stylesheet')
+    link(href='@styles/main.styl', rel='stylesheet')
+
+      
+    script.
+      const data = {
+        view: `#{view}`,
+        mode: `#{exported === true?'hash':'history'}`,
+        err: !{!err || err.status === 200 ? false : JSON.stringify(err)}
+      };
+      
+    script(src='/vue.js')
+    script(src='/vue-router.js')
+    script(src='/components.js')
+    
+    meta(charset='utf-8')
+
+  body
+    include templates.pug
+    #app
+      router-view
+
+    script(type='module' src='@scripts/app.js')

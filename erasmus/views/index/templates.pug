@@ -1,0 +1,15 @@
+template#template-index
+  .main
+    error-handler
+      h1 
+        | \
+        span v
+        | /
+
+      h2 waffer
+        span view: /#{view}/
+
+template#template-404
+  .main
+    error-handler
+      error(:err="{ status: 404, name: 'Route not Found', message: 'The client has not found anything matching the Request-URI.' }")

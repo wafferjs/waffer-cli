@@ -5,7 +5,6 @@ const fs        = require('fs-extra')
 const optimist  = require('optimist')
 const prompts   = require('prompts')
 const _         = require('lodash')
-const waffer    = require('../waffer')
 const colors    = require('colors')
 const path      = require('path')
 const glob      = require('glob')
@@ -45,7 +44,7 @@ const copy = (src, dest, filter = copyFilter) => {
   fs.copySync(src, dest, { filter });
 }
 
-const copyEjs = (src, dest, data = {}, filter = copyFilter) => {
+const copyEjsDir = (src, dest, data = {}, filter = copyFilter) => {
   const files = glob.sync(path.join(src, '*'));
 
   fs.ensureDirSync(dest);
@@ -70,6 +69,26 @@ const copyEjs = (src, dest, data = {}, filter = copyFilter) => {
   }
 }
 
+const copyEjs = (src, dest, data = {}, filter = copyFilter) => {
+  fs.ensureDirSync(dest);
+
+  const nfile = path.relative(path.join(__dirname, 'template'), src).slice(0, -4)
+  const dfile = path.join(dest.slice(0, -nfile.length-4), nfile)
+
+  if (src.endsWith('.ejs')) {
+    try {
+      const content = fs.readFileSync(src);
+      const parsed = _.template(content)(data);
+
+      fs.writeFileSync(dfile, parsed);
+      console.log('[+] '.green + dfile.slice(cwd.length + 1));
+    } catch (e) {
+      console.error(e)
+      console.log('[-] '.red + dfile.slice(cwd.length + 1));
+    }
+  }
+}
+
 const newView = dir => {
   const src = path.join(__dirname, 'template/views/index');
   const dest = path.join(cwd, 'views', dir);
@@ -90,7 +109,7 @@ const newComponent = (dir, wd = '/') => {
   const src = path.join(__dirname, 'template/assets/components/component');
   const dest = path.join(cwd, wd, 'assets', 'components', name);
 
-  copyEjs(src, dest, { name });
+  copyEjsDir(src, dest, { name });
 }
 
 const copyTemplate = dir => {
@@ -98,7 +117,14 @@ const copyTemplate = dir => {
   const dest = path.join(cwd, dir);
 
   copy(src, dest, (src, dest) => {
-    return !~dest.indexOf('/assets/components/component') && copyFilter(src, dest);
+    if (~dest.indexOf('/assets/components/component')) return false
+
+    if (dest.endsWith('.ejs')) {
+      copyEjs(src, dest, { name: dir })
+      return false
+    }
+    copyFilter(src, dest);
+    return true
   })
 }
 
@@ -126,17 +152,36 @@ if (argv._[0] === 'new') {
     const dir = await getArgs([ 'Name your project' ])
     copyTemplate(dir);
 
-    if (dir === '.') {
-      console.log('New waffer app created');
-      console.log('To start your app use:');
-      console.log('waffer --port 8080');
-      return;
-    }
+    const npm = require('npm')
 
-    console.log(`App ${dir.green} created`);
-    console.log('To start your app use:');
-    console.log('cd ' + dir);
-    console.log('waffer --port 8080');
+    process.chdir(dir)
+    
+    npm.load(err => {
+      if (err) {
+        return console.error(err)
+      }
+
+
+      npm.commands.install((err, data) => {
+        if (err) {
+          return console.error(err)
+        }
+
+        if (dir === '.') {
+          console.log('New waffer app created');
+          console.log('To start your app use:');
+          console.log('waffer --port 8080');
+          return;
+        }
+
+        console.log(`App ${dir.green} created`);
+        console.log('To start your app use:');
+        console.log('cd ' + dir);
+        console.log('waffer --port 8080');
+      })
+
+    })
+
   })()
 
   return
@@ -180,6 +225,8 @@ if (argv._[0] === 'component') {
 const prod = !!argv.prod;
 const debug = !!argv.debug;
 
+
+const waffer = require(path.join(process.cwd(), 'node_modules', 'waffer'))
 const server = waffer({ prod, debug });
 
 if (argv._[0] === 'export') {
