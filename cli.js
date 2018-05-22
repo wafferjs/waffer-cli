@@ -155,12 +155,11 @@ if (argv._[0] === 'new') {
     const npm = require('npm')
 
     process.chdir(dir)
-    
+
     npm.load(err => {
       if (err) {
         return console.error(err)
       }
-
 
       npm.commands.install((err, data) => {
         if (err) {

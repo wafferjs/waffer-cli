@@ -5,7 +5,7 @@ Vue.component(`error`, {
     err: {
       type: Object,
       default () {
-        return typeof err === 'undefined' ? {} : err
+        return !data.err ? {} : data.err
       },
     },
   },

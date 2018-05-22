@@ -2,7 +2,7 @@
 Vue.component(`error-handler`, {
   functional: true,
   render (h, ctx) {
-    if (typeof err !== 'undefined') {
+    if (this.hasError()) {
       return h('error')
     }
 
@@ -10,7 +10,7 @@ Vue.component(`error-handler`, {
   },
   methods: {
     hasError () {
-      return typeof err !== 'undefined'
+      return !!data.err
     },
   },
 })
