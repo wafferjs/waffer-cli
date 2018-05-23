@@ -1,4 +1,4 @@
-export default [
-  { path: '/', component: { template: `#template-index` } },
-  { path: '*', component: { template: `#template-404` } },
-]
+export default {
+  '/': 'templates/index', // template path
+  '*': [ 'templates/404', 'notfound' ], // template path, route name
+}

@@ -5,23 +5,24 @@ html
     link(href='/components.css', rel='stylesheet')
     link(href='@styles/main.styl', rel='stylesheet')
 
-      
     script.
       const data = {
         view: `#{view}`,
         mode: `#{exported === true?'hash':'history'}`,
         err: !{!err || err.status === 200 ? false : JSON.stringify(err)}
       };
-      
+
     script(src='/vue.js')
+    script(src='/axios.js')
     script(src='/vue-router.js')
     script(src='/components.js')
-    
+    script(src='/vue-progressbar.js')
+
     meta(charset='utf-8')
 
   body
-    include templates.pug
     #app
       router-view
+      vue-progress-bar
 
     script(type='module' src='@scripts/app.js')

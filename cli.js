@@ -70,7 +70,6 @@ const copyEjsDir = (src, dest, data = {}, filter = copyFilter) => {
 }
 
 const copyEjs = (src, dest, data = {}, filter = copyFilter) => {
-  fs.ensureDirSync(dest);
 
   const nfile = path.relative(path.join(__dirname, 'template'), src).slice(0, -4)
   const dfile = path.join(dest.slice(0, -nfile.length-4), nfile)
