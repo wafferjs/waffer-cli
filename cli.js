@@ -150,21 +150,17 @@ if (argv._[0] === 'new') {
     const dir = await getArgs([ 'Name your project' ])
     copyTemplate(dir);
 
-    const { spawn } = require('child_process')
-    const cwd = path.join(process.cwd(), dir)
+    const { spawnSync } = require('child_process')
 
-    try {
-      spawn('yarn', [], {
-        cwd,
-        stdio: 'inherit',
-      })
-    } catch (e) {
-      spawn('npm', [ 'install' ], {
-        cwd,
-        stdio: 'inherit',
-      })
+    const options = {
+      cwd: path.join(process.cwd(), dir),
+      stdio: 'inherit',
     }
 
+    const pm = await require('command-exists')('yarn') ? 'yarn' : 'npm'
+
+    spawnSync(pm, pm === 'yarn' ? [] : [ 'install' ], options)
+    spawnSync(pm, [ 'run', 'build' ], options)
   })()
 
   return
