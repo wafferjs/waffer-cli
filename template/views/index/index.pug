@@ -4,6 +4,13 @@ html
     link(href='/reset.styl', rel='stylesheet')
     link(href='/components.css', rel='stylesheet')
     link(href='@styles/main.styl', rel='stylesheet')
+      
+    script(src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js")
+    script(src="https://cdn.jsdelivr.net/npm/vue-router@3.0.1/dist/vue-router.min.js")
+    script(src="https://cdn.jsdelivr.net/npm/axios@0.18.0/dist/axios.min.js")
+    script(src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.js")
+    
+    link(href='https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.css', rel='stylesheet')
 
     script.
       const data = {
@@ -12,17 +19,11 @@ html
         err: !{!err || err.status === 200 ? false : JSON.stringify(err)}
       };
 
-    script(src='/vue.js')
-    script(src='/axios.js')
-    script(src='/vue-router.js')
-    script(src='/components.js')
-    script(src='/vue-progressbar.js')
-
     meta(charset='utf-8')
 
   body
     #app
       router-view
-      vue-progress-bar
 
-    script(type='module' src='@scripts/app.js')
+    script(src='@scripts/app.prod.js')
+    script(src='/components.js')

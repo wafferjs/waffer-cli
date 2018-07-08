@@ -24,7 +24,6 @@ if (argv._[0] === 'help') {
   console.log('waffer view <name>       # create new view');
   console.log('waffer component <name>  # create new component');
   console.log('waffer controller <name> # create new controller');
-  console.log('waffer export            # export all views into simple html site');
   console.log('waffer help              # display help');
 
   process.exit()

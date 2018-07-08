@@ -1,5 +1,5 @@
 /* eslint no-unused-vars: ["error", { varsIgnorePattern: "app" }] */
-/* global Vue VueRouter data */
+/* global data */
 
 import routes from './routes.js'
 
@@ -30,27 +30,21 @@ const router = new VueRouter({
   })
 })
 
-Vue.use(VueProgressBar, {
-  color: 'rgb(25, 143, 227)',
-  failedColor: 'rgb(255, 28, 104)',
-  height: '2px'
-})
+Vue.use(VueRouter)
 
 router.beforeEach((to, from, next) => {
-  const eb = VueProgressBarEventBus
-  eb.$Progress.start()
+  NProgress.start()
   next()
 })
 
 router.afterEach((to, from) => {
-  const eb = VueProgressBarEventBus
 
   if (to.name === 'notfound') {
-    eb.$Progress.fail()
+    NProgress.done()
     return
   }
 
-  eb.$Progress.finish()
+  NProgress.done()
 })
 
 const app = new Vue({

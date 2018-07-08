@@ -1,12 +1,22 @@
 {
-  "name": "<%= name %>",
+  "name": "n",
   "version": "1.0.0",
   "scripts": {
-    "start": "waffer --port 8080"
+    "start": "waffer --port 8080",
+    "build": "rollup -c"
   },
   "license": "MIT",
   "dependencies": {
     "waffer": "*"
+  },
+  "devDependencies": {
+    "rollup": "*",
+    "rollup-plugin-buble": "*",
+    "rollup-plugin-commonjs": "*",
+    "rollup-plugin-gzip": "*",
+    "rollup-plugin-node-resolve": "*",
+    "rollup-plugin-nodent": "*",
+    "rollup-plugin-uglify": "*"
   },
   "browserslist": [
     "last 6 versions",
