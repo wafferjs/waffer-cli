@@ -25,7 +25,6 @@
     "fs-extra": "^6.0.1",
     "lodash": "^4.17.10",
     "optimist": "^0.6.1",
-    "prompts": "^0.1.11",
-    "uglify-es": "^3.3.10"
+    "prompts": "^0.1.11"
   }
 }

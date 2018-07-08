@@ -1,6 +1,5 @@
 #!/usr/bin/node
 
-const uglify    = require('uglify-es')
 const fs        = require('fs-extra')
 const optimist  = require('optimist')
 const prompts   = require('prompts')
