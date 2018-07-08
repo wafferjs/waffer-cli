@@ -151,34 +151,20 @@ if (argv._[0] === 'new') {
     const dir = await getArgs([ 'Name your project' ])
     copyTemplate(dir);
 
-    const npm = require('npm')
+    const { spawn } = require('child_process')
+    const cwd = path.join(process.cwd(), dir)
 
-    process.chdir(dir)
-
-    npm.load(err => {
-      if (err) {
-        return console.error(err)
-      }
-
-      npm.commands.install((err, data) => {
-        if (err) {
-          return console.error(err)
-        }
-
-        if (dir === '.') {
-          console.log('New waffer app created');
-          console.log('To start your app use:');
-          console.log('waffer --port 8080');
-          return;
-        }
-
-        console.log(`App ${dir.green} created`);
-        console.log('To start your app use:');
-        console.log('cd ' + dir);
-        console.log('waffer --port 8080');
+    try {
+      spawn('yarn', [], {
+        cwd,
+        stdio: 'inherit',
       })
-
-    })
+    } catch (e) {
+      spawn('npm', [ 'install' ], {
+        cwd,
+        stdio: 'inherit',
+      })
+    }
 
   })()
 
