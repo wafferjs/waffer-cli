@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "version": "auto-changelog -pt keepachangelog --commit-limit 7 && git add CHANGELOG.md",
+    "publish": "git push"
   },
   "bin": {
     "waffer": "cli.js"
@@ -26,5 +27,8 @@
     "lodash": "^4.17.10",
     "optimist": "^0.6.1",
     "prompts": "^0.1.11"
+  },
+  "devDependencies": {
+    "auto-changelog": "^1.7.2"
   }
 }
