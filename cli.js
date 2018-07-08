@@ -7,7 +7,6 @@ const prompts   = require('prompts')
 const _         = require('lodash')
 const colors    = require('colors')
 const path      = require('path')
-const glob      = require('glob')
 
 const { argv } = optimist;
 
@@ -43,8 +42,8 @@ const copy = (src, dest, filter = copyFilter) => {
   fs.copySync(src, dest, { filter });
 }
 
-const copyEjsDir = (src, dest, data = {}, filter = copyFilter) => {
-  const files = glob.sync(path.join(src, '*'));
+const copyEjsDir = async (src, dest, data = {}, filter = copyFilter) => {
+  const files = (await fs.readdir(src)).map(d => path.join(src, d))
 
   fs.ensureDirSync(dest);
 
@@ -102,7 +101,7 @@ const newController = dir => {
   copy(src, dest);
 }
 
-const newComponent = (dir, wd = '/') => {
+const newComponent = async (dir, wd = '/') => {
   const name = _.kebabCase(dir);
   const src = path.join(__dirname, 'template/assets/components/component');
   const dest = path.join(cwd, wd, 'assets', 'components', name);
@@ -194,7 +193,7 @@ if (argv._[0] === 'controller') {
 if (argv._[0] === 'component') {
   (async () => {
     const dir = await getArgs([ 'Name your component' ])
-    newComponent(dir);
+    await newComponent(dir);
     console.log('Component ' + dir.green + ' created.');
   })()
 
