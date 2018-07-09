@@ -14,7 +14,6 @@ waffer new [<dir>]       # initialize waffer project
 waffer view <name>       # create new view
 waffer component <name>  # create new component
 waffer controller <name> # create new controller
-waffer export            # export all views into simple html site
 waffer help              # display help
 ```
 
@@ -35,11 +34,6 @@ $ waffer view my-view
 #### Creating new controllers
 ```sh
 $ waffer controller my-controller
-```
-
-#### Exporting website to html
-```sh
-$ waffer export
 ```
 
 #### Serving content
