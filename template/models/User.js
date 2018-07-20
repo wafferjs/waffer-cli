@@ -1,26 +1,37 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
-const JWT_SECRET = 'waffer_jwt_secret'
+const JWT_SECRET = 'teddybear'
 
 module.exports = schema => {
-
-  // Define new schema
+  // ===
+  // Define new model
+  // ===
   const User = schema.define('User', {
-    name:       { type: schema.String,  limit: 32 },
-    email:      { type: schema.String,  limit: 155, unique: true },
-    password:   { type: schema.String,  limit: 255 },
-    joinedAt:   { type: schema.Date,    default: Date.now },
+    name: { type: schema.String, limit: 32 },
+    email: { type: schema.String, limit: 155, unique: true },
+    password: { type: schema.String, limit: 255 },
+    joinedAt: { type: schema.Date, default: Date.now },
   })
 
+  // ===
   // Export ready function
+  // All functions called on model should be inside that function
+  // ===
   return function ready () {
-
+    // ===
     // Add validators
+    // ===
+
+    // Validate existance of login, email and password
     User.validatesPresenceOf('name', 'email', 'password')
+
+    // Validate uniqueness of email
     User.validatesUniquenessOf('email', {
       message: 'This email is already in use',
     })
+
+    // Validate length of password
     User.validatesLengthOf('password', {
       min: 5,
       max: 255,
@@ -30,7 +41,11 @@ module.exports = schema => {
       },
     })
 
+    // ===
     // Add methods
+    // ===
+
+    // Find user by login/email
     User.findByLogin = async function (login) {
       return new Promise((resolve, reject) => {
         User.findOne({
@@ -41,7 +56,7 @@ module.exports = schema => {
           }
 
           if (!user) {
-            User.findOne({
+            return User.findOne({
               where: { email: login },
             }, (err, user) => {
               if (err) {
@@ -57,6 +72,7 @@ module.exports = schema => {
       })
     }
 
+    // Authenticate user by login and password
     User.authenticate = async function (login, password) {
       const user = await User.findByLogin(login)
       if (!user) return false
@@ -64,6 +80,7 @@ module.exports = schema => {
       return user.authenticate(password)
     }
 
+    // Authenticate user instance
     User.prototype.authenticate = function (password) {
       const password_matches = bcrypt.compare(password, this.password)
 
@@ -75,11 +92,16 @@ module.exports = schema => {
       }, JWT_SECRET)
     }
 
+    // Verify user token
     User.verify = async function (token) {
       return User.findByLogin(jwt.verify(token, JWT_SECRET).username)
     }
 
+    // ===
     // Add events
+    // ===
+
+    // Hash password just before creating new user
     User.beforeCreate = function (next) {
       bcrypt.hash(this.password, 10).then(hash => {
         this.password = hash
@@ -87,10 +109,9 @@ module.exports = schema => {
       })
     }
 
-    // Create relationships
-    User.belongsTo(Session, { as: 'user', foreignKey: 'userId' })
-
+    // ===
     // Export to global scope
+    // ===
     return User
   }
 }
