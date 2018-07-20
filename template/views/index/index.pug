@@ -5,6 +5,11 @@ html
     link(href='/components.css', rel='stylesheet')
     link(href='@styles/main.styl', rel='stylesheet')
       
+      
+    // Auto add polyfills
+    script(src="https://cdn.polyfill.io/v2/polyfill.js")
+      
+    // Load base libs
     script(src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js")
     script(src="https://cdn.jsdelivr.net/npm/vue-router@3.0.1/dist/vue-router.min.js")
     script(src="https://cdn.jsdelivr.net/npm/axios@0.18.0/dist/axios.min.js")
@@ -12,10 +17,11 @@ html
     
     link(href='https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.css', rel='stylesheet')
 
+    // Set basic data
     script.
       const data = {
         view: `#{view}`,
-        mode: `#{exported === true?'hash':'history'}`,
+        mode: `history`,
         err: !{!err || err.status === 200 ? false : JSON.stringify(err)}
       };
 
